@@ -1,13 +1,16 @@
 package com.example.mycrud;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -18,6 +21,8 @@ public class MainActivity extends AppCompatActivity {
     SQLiteDatabase bancoDados;
     ListView listViewDados;
     Button button;
+    ArrayList<Integer> arrayIds;
+    Integer idSelecionado;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +36,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 abrirTelaCadastro();
+            }
+        });
+
+        listViewDados.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                idSelecionado = arrayIds.get(i);
+                confirmaExcluir();
+                return true;
             }
         });
 
@@ -88,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void listarDados(){
         try {
-            //arrayIds = new ArrayList<>();
+            arrayIds = new ArrayList<>();
             bancoDados = openOrCreateDatabase("crudapp", MODE_PRIVATE, null);
             Cursor meuCursor = bancoDados.rawQuery("SELECT id, nome, idade FROM pessoa", null);
             ArrayList<String> linhas = new ArrayList<String>();
@@ -102,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
             meuCursor.moveToFirst();
             while(meuCursor!=null){
                 linhas.add(  meuCursor.getString(1) + ", " + meuCursor.getString(2)  );
-                //arrayIds.add(meuCursor.getInt(0));
+                arrayIds.add(meuCursor.getInt(0));
                 meuCursor.moveToNext();
             }
 
@@ -114,6 +128,41 @@ public class MainActivity extends AppCompatActivity {
     public void abrirTelaCadastro(){
         Intent intent = new Intent ( this, AddActivity.class);
         startActivity(intent);
+    }
+
+    public void confirmaExcluir() {
+        AlertDialog.Builder msgBox = new AlertDialog.Builder(MainActivity.this);
+        msgBox.setTitle("Excluir");
+        msgBox.setIcon(android.R.drawable.ic_menu_delete);
+        msgBox.setMessage("Você realmente deseja excluir esse registro?");
+        msgBox.setPositiveButton("Sim", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                excluir();
+                // listarDados();
+            }
+        });
+        msgBox.setNegativeButton("Não", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+            }
+        });
+        msgBox.show();
+    }
+
+    public void excluir(){
+        //Toast.makeText(this, i.toString(), Toast.LENGTH_SHORT).show();
+        try{
+            bancoDados = openOrCreateDatabase("crudapp", MODE_PRIVATE, null);
+            String sql = "DELETE FROM pessoa WHERE id =?";
+            SQLiteStatement stmt = bancoDados.compileStatement(sql);
+            stmt.bindLong(1, idSelecionado);
+            stmt.executeUpdateDelete();
+            listarDados();
+            bancoDados.close();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
 }
