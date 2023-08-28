@@ -21,7 +21,7 @@ public class AddActivity extends AppCompatActivity {
 
         editTextName = (EditText) findViewById(R.id.editTextName);
         editTextIdade = (EditText) findViewById(R.id.editTextIdade);
-        buttonAdd = (Button) findViewById(R.id.buttonAdd);
+        buttonAdd = (Button) findViewById(R.id.buttonEdit);
 
         buttonAdd.setOnClickListener(new View.OnClickListener() {
             @Override
